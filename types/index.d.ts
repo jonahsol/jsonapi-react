@@ -1,4 +1,5 @@
 declare module 'jsonapi-react' {
+
   interface IPlugin {
     initialize(client: ApiClient): void
   }
@@ -11,7 +12,14 @@ declare module 'jsonapi-react' {
     ...queryKeys: any[],
   ]
 
+  export type QueryAction = {
+      type: string,
+      keys?: string[]
+  } & any
+  export type QueryActionFunc = (action: QueryAction) => void
+
   type StringMap = { [key: string]: any }
+  type DefaultTData = StringMap | StringMap[]
 
   interface IResult<TData = StringMap | StringMap[]> {
     data?: TData
@@ -25,6 +33,9 @@ declare module 'jsonapi-react' {
     client: ApiClient
   }
 
+  // a json:api type
+  type Type = string
+
   interface IConfig {
     url?: string
     mediaType?: string
@@ -36,14 +47,30 @@ declare module 'jsonapi-react' {
     formatErrors?: (errors) => any
     fetch?: (url: string, options: {}) => Promise<{}>
     stringify?: <TQueryParams = any>(q: TQueryParams) => string
-    fetchOptions?: {}
+    fetchOptions?: {},
+    invalidate?: Type[]
   }
+
+    type MutationFunc<TData> = (
+        queryArg: QueryArg,
+        mutate: TData,
+        config?: IConfig
+    ) => Promise<IResult<TData>>
+
+
+    export interface Schema {
+        type: string,
+        relationships?: any
+        fields?: Record<string, any>
+    }
+
+    type QueryParams = any
 
   export class ApiClient {
     constructor({
       ...args
     }: {
-      schema?: {}
+      schema?: Record<string, Schema>,
       plugins?: IPlugin[]
     } & IConfig)
 
@@ -51,20 +78,26 @@ declare module 'jsonapi-react' {
 
     clearCache(): void
 
-    delete(queryArg: QueryArg, config?: IConfig): Promise<IResult>
+    delete(queryArg: QueryArg, config?: IConfig): Promise<IResult<void>>
 
-    fetch(queryArg: QueryArg, config?: IConfig): Promise<IResult>
+    fetch<T = DefaultTData>(
+        queryArg: QueryArg, 
+        config?: IConfig
+    ): Promise<IResult<T>>
 
     isFetching(): boolean
 
-    mutate(
+    mutate<T = DefaultTData>(
       queryArg: QueryArg,
-      data: {} | [],
-      config?: IConfig
-    ): Promise<IResult>
+      data: Partial<T>,
+      config?: MutationConfig
+    ): Promise<IResult<T>>
 
     removeHeader(key: string): ApiClient
+
+    subscribe(f: QueryActionFunc): void
   }
+
 
   export function ApiProvider({
     children,
@@ -74,7 +107,7 @@ declare module 'jsonapi-react' {
     client: ApiClient
   }): JSX.Element
 
-  export const ApiContext: React.Context
+  export const ApiContext: React.Context<any>
 
   export function renderWithData(
     element: JSX.Element,
@@ -86,14 +119,16 @@ declare module 'jsonapi-react' {
 
   export function useIsFetching(): { isFetching: boolean }
 
-  export function useMutation<TData = StringMap | StringMap[]>(
-    queryArg: QueryArg,
-    config?: {
-      invalidate?: boolean | string | string[]
+    type MutationConfig = {
+      invalidate?: Type | Type[]
       method?: string
       client?: ApiClient
     }
-  ): [mutate: (any) => Promise<IResult<TData>>, result: IResult<TData>]
+
+  export function useMutation<TData = StringMap | StringMap[]>(
+    queryArg: QueryArg,
+    config?: MutationConfig
+  ): [mutate: MutationFunc<TData>]
 
   export function useQuery<TData = StringMap | StringMap[]>(
     queryArg: QueryArg,
