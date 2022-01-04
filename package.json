@@ -9,6 +9,7 @@
   "module": "dist/index.es.js",
   "types": "types/index.d.ts",
   "scripts": {
+    "prepare": "npm run build",
     "test": "jest",
     "test:watch": "jest .",
     "build": "NODE_ENV=production rollup -c",
