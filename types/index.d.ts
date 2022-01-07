@@ -1,5 +1,12 @@
 declare module 'jsonapi-react' {
 
+  interface TypeDef {
+      type: string
+  }
+  type SchemaEntry = TypeDef & {
+      relationships?: Record<any, TypeDef>
+  }
+
   interface IPlugin {
     initialize(client: ApiClient): void
   }
