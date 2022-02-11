@@ -42,6 +42,11 @@ declare module 'jsonapi-react' {
 
   // a json:api type
   type Type = string
+  type MutationReqData = { type: string, id?: string, attributes?: object, relationships?: object }
+  interface MutationReq { 
+    type: string 
+    data: null | MutationReqData
+  }
 
   interface IConfig {
     url?: string
@@ -54,7 +59,7 @@ declare module 'jsonapi-react' {
     formatErrors?: (errors) => any
     fetch?: (url: string, options: {}) => Promise<{}>
     stringify?: <TQueryParams = any>(q: TQueryParams) => string
-    transformSerializedData?: (data: { attributes?: object }) => void
+    serialize: (type: string, data: object, schema: Schema) => MutationReq
     fetchOptions?: {},
     invalidate?: Type[]
   }
@@ -73,6 +78,10 @@ declare module 'jsonapi-react' {
     }
 
     type QueryParams = any
+
+  export class Serializer {
+    serialize(type: string, attrs: undefined | null | object): MutationReq
+  }
 
   export class ApiClient {
     constructor({
