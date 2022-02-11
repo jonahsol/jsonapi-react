@@ -59,7 +59,7 @@ declare module 'jsonapi-react' {
     formatErrors?: (errors) => any
     fetch?: (url: string, options: {}) => Promise<{}>
     stringify?: <TQueryParams = any>(q: TQueryParams) => string
-    serialize: (type: string, data: object, schema: Schema) => MutationReq
+    serialize?: (type: string, data: object, schema: Schema) => MutationReq
     fetchOptions?: {},
     invalidate?: Type[]
   }
