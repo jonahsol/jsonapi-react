@@ -19,6 +19,7 @@ export class ApiClient {
       formatError: null,
       formatErrors: null,
       stringify: null,
+      transformSerializedData: x => x,
       serialize: (type, data, schema) => {
         return new Serializer({ schema }).serialize(type, data)
       },
@@ -56,6 +57,9 @@ export class ApiClient {
 
   serialize(type, data) {
     return this.config.serialize(type, data, this.schema)
+  }
+  transformSerializedData(serialized) {
+    return this.config.transformSerializedData(serialized)
   }
 
   normalize(data, extra) {
@@ -236,6 +240,7 @@ export class ApiClient {
 
     if (data && data !== null) {
       data = this.serialize(type, query.id ? { id: query.id, ...data } : data)
+      data = this.transformSerializedData(data)
       options.body = JSON.stringify(data)
     }
 
